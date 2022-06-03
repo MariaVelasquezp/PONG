@@ -1,0 +1,1235 @@
+--GROUP 2
+--LED MATRIX CONTROLLER
+LIBRARY IEEE;
+USE ieee.std_logic_1164.all;
+----------------------------------------------------------
+ENTITY led_matrix IS
+	GENERIC( N_base :	INTEGER := 16);
+	PORT(		clk 				: 		IN 		STD_LOGIC;
+				rst 				: 		IN 		STD_LOGIC;
+				x_ball			:		IN			STD_LOGIC_VECTOR(3 DOWNTO 0);
+				y_ball			:		IN			STD_LOGIC_VECTOR(3 DOWNTO 0);	
+				rack1y1			:		IN	  		STD_LOGIC_VECTOR(3 DOWNTO 0);	
+				rack1y2			:		IN			STD_LOGIC_VECTOR(3 DOWNTO 0);	
+				rack1y3			:		IN			STD_LOGIC_VECTOR(3 DOWNTO 0);
+				rack2y1			:		IN			STD_LOGIC_VECTOR(3 DOWNTO 0);	
+				rack2y2			:		IN			STD_LOGIC_VECTOR(3 DOWNTO 0);	
+				rack2y3			:		IN			STD_LOGIC_VECTOR(3 DOWNTO 0);
+				matrix1			:		OUT		STD_LOGIC_VECTOR(15 DOWNTO 0);
+				matrix2			:		OUT		STD_LOGIC_VECTOR(15 DOWNTO 0));
+END ENTITY;
+
+ARCHITECTURE controller	OF led_matrix IS
+	TYPE 	 state IS (st0, st1, st2, st3, st4, st5, st6, st7, st8, st9, st10, st11, st12, st13, st14, st15, st16, st17, st18, st19, st20, st21, st22, st23, st24, st25, st26, st27, st28, st29, st30, st31, st32, st33, st34, st35, st36, st37, st38, st39, st40, st41, st42, st43, st44, st45, st46, st47, st48, st49, st50, st51, st52, st53, st54, st55, st56, st57, st58, st59, st60, st61, st62, st63); 
+	SIGNAL pr_state, nx_state: state;
+	SIGNAL max_tick: STD_LOGIC;
+BEGIN
+	PROCESS (rst, clk)
+	BEGIN
+		IF (rst='1') THEN
+			pr_state <= st0;
+		ELSIF (rising_edge(clk)) THEN
+			IF (max_tick='1') THEN
+				pr_state <= nx_state;
+			END IF;
+		END IF;
+	END PROCESS;
+	
+		TIMER_LED: ENTITY work.univ_bin_counter
+		GENERIC MAP	(	N				=> N_base)
+		PORT MAP( clk 			=>	clk,
+					 rst 			=> rst,
+					 syn_clr		=> '0',
+					 ena        => '1',
+					 max_count  => "0011000011010100",
+					 up 			=> '1',
+					 max_tick	=> max_tick,
+					 counter		=>	OPEN);
+					 
+	led: PROCESS(max_tick,clk,pr_state, nx_state, y_ball, x_ball,rack1y1,rack1y2,rack1y3,rack2y1,rack2y2,rack2y3)
+	BEGIN
+		CASE pr_state IS
+			WHEN st0=> 
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+			IF (y_ball="0000") THEN
+				IF (x_ball="0000") THEN
+					matrix1<="1100101100011100";
+				ELSE
+				matrix1<="1100101110010100";
+				END IF;
+				IF (x_ball="1000") THEN
+					matrix2<="1100101100011100";
+				ELSE
+				matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			IF (rack1y1="0000") THEN
+				matrix1<="1100101100011100";
+				ELSE
+				matrix1<="1100101110010100";
+			END IF;
+			nx_state <= st1;	
+				
+			WHEN st1=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0000") THEN
+					IF (x_ball="0001") THEN
+						matrix1<="1110101100010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1001") THEN
+						matrix2<="1110101100010100";
+					ELSE
+					matrix2<="1100101110010100";
+					END IF;
+				END IF;
+			nx_state <= st2;	
+			
+			WHEN st2=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0000") THEN
+					IF (x_ball="0010") THEN
+						matrix1<="1101101100010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1010") THEN
+						matrix2<="1101101100010100";
+					ELSE
+					matrix2<="1100101110010100";
+					END IF;
+				END IF;
+			nx_state <= st3;	
+				
+			WHEN st3=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0000") THEN
+					IF (x_ball="0011") THEN
+						matrix1<="1100101101010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1011") THEN
+						matrix2<="1100101101010100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st4;
+				
+			WHEN st4=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0000") THEN
+					IF (x_ball="0100") THEN
+						matrix1<="1100111100010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1100") THEN
+						matrix2<="1100111100010100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st5;
+				
+			WHEN st5=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0000") THEN
+					IF (x_ball="0101") THEN
+						matrix1<="1100101100110100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1101") THEN
+						matrix2<="1100101100110100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st6;
+				
+			WHEN st6=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0000") THEN
+					IF (x_ball="0110") THEN
+						matrix1<="1100101100010110";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1110") THEN
+						matrix2<="1100101100010110";				
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st7;
+				
+			WHEN st7=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0000") THEN
+					IF (x_ball="0111") THEN
+						matrix1<="1100101100010101";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1111") THEN
+						matrix2<="1100101100010101";	
+					ELSE
+					matrix2<="1100101110010100";
+					END IF;
+				END IF;
+				IF (rack2y1="0000") THEN
+					matrix2<="1100101100010101";
+				ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			nx_state <= st8;
+				
+			WHEN st8=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0001") THEN
+					IF (x_ball="0000") THEN
+						matrix1<="1100101110011000";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1000") THEN
+						matrix2<="1100101110011000";
+					ELSE
+					matrix2<="1100101110010100";
+					END IF;
+				END IF;
+				IF (rack1y1="0001" OR rack1y2="0001")THEN
+					matrix1<="1100101110011000";
+				ELSE
+					matrix1<="1100101110010100";
+				END IF;
+			nx_state <= st9;
+				
+			WHEN st9=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0001") THEN
+					IF (x_ball="0001") THEN
+						matrix1<="1110101110010000";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1001") THEN
+						matrix2<="1110101110010000";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st10;
+				
+			WHEN st10=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0001") THEN
+					IF (x_ball="0010") THEN
+						matrix1<="1101101110010000";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1010") THEN
+						matrix2<="1101101110010000";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st11;
+				
+			WHEN st11=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0001") THEN
+					IF (x_ball="0011") THEN
+						matrix1<="1100101111010000";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1011") THEN
+						matrix2<="1100101111010000";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st12;
+				
+			WHEN st12=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";	
+				IF (y_ball="0001") THEN
+					IF (x_ball="0100") THEN
+						matrix1<="1100111110010000";				
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1100") THEN
+						matrix2<="1100111110010000";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st13;
+				
+			WHEN st13=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0001") THEN
+					IF (x_ball="0101") THEN
+						matrix1<="1100101110110000";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1101") THEN
+						matrix2<="1100101110110000";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st14;
+				
+			WHEN st14=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0001") THEN
+					IF (x_ball="0110") THEN
+						matrix1<="1100101110010010";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1110") THEN
+						matrix2<="1100101110010010";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st15;
+				
+			WHEN st15=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0001") THEN
+					IF (x_ball="0111") THEN
+						matrix1<="1100101110010001";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1111") THEN
+						matrix2<="1100101110010001";
+					ELSE
+					matrix2<="1100101110010100";
+					END IF;
+				END IF;
+				IF (rack2y1="0001" OR rack2y2="0001")THEN
+					matrix2<="1100101110010001";
+				ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			nx_state <= st16;	
+				
+			WHEN st16=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0010") THEN
+					IF (x_ball="0000") THEN
+						matrix1<="1100101010011100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1000") THEN
+						matrix2<="1100101010011100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			IF (rack1y1="0010" OR rack1y2="0010" OR rack1y3="0010")THEN
+					matrix1<="1100101010011100";
+				ELSE
+					matrix1<="1100101110010100";
+			END IF;
+			nx_state <= st17;	
+			
+			WHEN st17=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0010") THEN
+					IF (x_ball="0001") THEN
+						matrix1<="1110101010010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1001") THEN
+						matrix2<="1110101010010100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st18;	
+				
+			WHEN st18=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0010") THEN
+					IF (x_ball="0010") THEN
+						matrix1<="1101101010010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1010") THEN
+						matrix2<="1101101010010100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st19;
+				
+			WHEN st19=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0010") THEN
+					IF (x_ball="0011") THEN
+						matrix1<="1100101011010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1011") THEN
+						matrix2<="1100101011010100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st20;	
+				
+			WHEN st20=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0010") THEN
+					IF (x_ball="0100") THEN
+						matrix1<="1100111010010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1100") THEN
+						matrix2<="1100111010010100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st21;	
+				
+			WHEN st21=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0010") THEN
+					IF (x_ball="0101") THEN
+						matrix1<="1100101010110100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1101") THEN
+						matrix2<="1100101010110100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st22;	
+			
+			WHEN st22=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0010") THEN
+					IF (x_ball="0110") THEN
+						matrix1<="1100101010010110";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1110") THEN
+						matrix2<="1100101010010110";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st23;	
+				
+			WHEN st23=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0010") THEN
+					IF (x_ball="0111") THEN
+						matrix1<="1100101010010101";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1111") THEN
+						matrix2<="1100101010010101";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			IF (rack2y1="0010" OR rack2y2="0010" OR rack2y3="0010")THEN
+					matrix2<="1100101010010101";
+				ELSE
+					matrix2<="1100101110010100";
+			END IF;
+			nx_state <= st24;	
+				
+			WHEN st24=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0011") THEN
+					IF (x_ball="0000") THEN
+						matrix1<="1100101110001100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1000") THEN
+						matrix2<="1100101110001100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			IF (rack1y1="0011" OR rack1y2="0011" OR rack1y3="0011")THEN
+					matrix1<="1100101110001100";
+				ELSE
+					matrix1<="1100101110010100";
+			END IF;
+			nx_state <= st25;	
+				
+			WHEN st25=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0011") THEN
+					IF (x_ball="0001") THEN
+						matrix1<="1110101110000100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1001") THEN
+						matrix2<="1110101110000100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st26;	
+				
+			WHEN st26=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0011") THEN
+					IF (x_ball="0010") THEN
+						matrix1<="1101101110000100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1010") THEN
+						matrix2<="1101101110000100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st27;	
+				
+			WHEN st27=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0011") THEN
+					IF (x_ball="0011") THEN
+						matrix1<="1100101111000100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1011") THEN
+						matrix2<="1100101111000100";
+					ELSE
+					matrix1<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st28;	
+				
+			WHEN st28=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0011") THEN
+					IF (x_ball="0100") THEN
+						matrix1<="1100111110000100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1100") THEN
+						matrix2<="1100111110000100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st29;	
+				
+			WHEN st29=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0011") THEN
+					IF (x_ball="0101") THEN
+						matrix1<="1100101110100100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1101") THEN
+						matrix2<="1100101110100100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st30;	
+				
+			WHEN st30=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0011") THEN
+					IF (x_ball="0110") THEN
+						matrix1<="1100101110000110";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1110") THEN
+						matrix2<="1100101110000110";
+					ELSE
+					matrix2<="1100101110010100";	
+				END IF;
+			END IF;
+			nx_state <= st31;	
+				
+			WHEN st31=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0011") THEN
+					IF (x_ball="0111") THEN
+						matrix1<="1100101110000101";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1111") THEN
+						matrix2<="1100101110000101";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			IF (rack2y1="0011" OR rack2y2="0011" OR rack2y3="0011") THEN
+					matrix2<="1100101110000101";
+			ELSE
+					matrix2<="1100101110010100";
+			END IF;
+			nx_state <= st32;	
+				
+			WHEN st32=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0100") THEN
+					IF (x_ball="0000" ) THEN
+						matrix1<="0100101110011100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1000") THEN
+						matrix2<="0100101110011100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			IF (rack1y1="0100" OR rack1y2="0100" OR rack1y3="0100") THEN
+					matrix1<="0100101110011100";
+				ELSE
+					matrix1<="1100101110010100";
+			END IF;
+			nx_state <= st33;	
+				
+			WHEN st33=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0100") THEN
+					IF (x_ball="0001") THEN
+						matrix1<="0110101110010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1001") THEN
+						matrix2<="0110101110010100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st34;	
+				
+			WHEN st34=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0100") THEN
+					IF (x_ball="0010") THEN
+						matrix1<="0101101110010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1010") THEN
+						matrix2<="0101101110010100";				
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st35;	
+				
+			WHEN st35=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0100") THEN
+					IF (x_ball="0011") THEN
+						matrix1<="0100101111010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1011") THEN
+						matrix2<="0100101111010100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st36;	
+				
+			WHEN st36=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0100") THEN
+					IF (x_ball="0100") THEN
+						matrix1<="0100111110010100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1100") THEN
+						matrix2<="0100111110010100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st37;	
+				
+			WHEN st37=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0100") THEN
+					IF (x_ball="0101") THEN
+						matrix1<="0100101110110100";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1101") THEN
+						matrix2<="0100101110110100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st38;	
+				
+			WHEN st38=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0100") THEN
+					IF (x_ball="0110") THEN
+						matrix1<="0100101110010110";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1110") THEN
+						matrix2<="0100101110010110";
+					ELSE
+					matrix2<="1100101110010100";	
+				END IF;
+			END IF;
+			nx_state <= st39;	
+				
+			WHEN st39=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0100") THEN
+					IF (x_ball="0111") THEN
+						matrix1<="0100101110010101";
+					ELSE
+					matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1111") THEN
+						matrix2<="0100101110010101";
+					ELSE
+					matrix2<="1100101110010100";	
+				END IF;
+			END IF;
+			IF (rack2y1="0100" OR rack2y2="0100" OR rack2y3="0100") THEN
+					matrix2<="0100101110010101";
+				ELSE
+					matrix2<="1100101110010100";
+			END IF;
+			nx_state <= st40;	
+				
+			WHEN st40=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0101") THEN
+					IF (x_ball="0000") THEN
+						matrix1<="1100100110011100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1000") THEN
+						matrix2<="1100100110011100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			IF (rack1y1="0101" OR rack1y2="0101" OR rack1y3="0101") THEN
+					matrix1<="1100100110011100";
+				ELSE
+					matrix1<="1100101110010100";
+			END IF;
+			nx_state <= st41;
+			
+			WHEN st41=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0101") THEN
+					IF (x_ball="0001") THEN
+						matrix1<="1110100110010100";
+				ELSE
+					matrix1<="1100101110010100";
+				END IF;
+					IF (x_ball="1001") THEN
+						matrix2<="1110100110010100";
+				ELSE
+					matrix2<="1100101110010100";	
+				END IF;
+			END IF;
+			nx_state <= st42;	
+				
+			WHEN st42=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0101") THEN
+					IF (x_ball="0010") THEN
+						matrix1<="1101100110010100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1010") THEN
+						matrix2<="1101100110010100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st43;	
+				
+			WHEN st43=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0101") THEN
+					IF (x_ball="0011") THEN
+						matrix1<="1100100111010100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1011") THEN
+						matrix2<="1100100111010100";
+					ELSE
+					matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st44;	
+				
+			WHEN st44=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0101") THEN
+					IF (x_ball="0100") THEN
+						matrix1<="1100110110010100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1100") THEN
+						matrix2<="1100110110010100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st45;	
+			
+			WHEN st45=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0101") THEN
+					IF (x_ball="0101") THEN
+						matrix1<="1100100110110100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1101") THEN
+						matrix2<="1100100110110100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st46;	
+				
+			WHEN st46=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0101") THEN
+					IF (x_ball="0110") THEN
+						matrix1<="1100100110010110";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1110") THEN
+						matrix2<="1100100110010110";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st47;	
+				
+			WHEN st47=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0101") THEN
+					IF (x_ball="0111") THEN
+						matrix1<="1100100110010101";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1111") THEN
+						matrix2<="1100100110010101";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			IF (rack2y1="0101" OR rack2y2="0101" OR rack2y3="0101")THEN
+					matrix2<="1100100110010101";
+				ELSE
+					matrix2<="1100101110010100";
+			END IF;
+			nx_state <= st48;	
+				
+			WHEN st48=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0110") THEN
+					IF (x_ball="0000" ) THEN
+						matrix1<="1000101110011100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1000") THEN
+						matrix2<="1000101110011100";
+					ELSE
+						matrix2<="1100101110010100";	
+				END IF;
+			END IF;
+			IF (rack1y2="0110" OR rack1y3="0110")THEN
+					matrix1<="1000101110011100";
+				ELSE
+					matrix1<="1100101110010100";
+			END IF;
+			nx_state <= st49;	
+				
+			WHEN st49=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0110") THEN
+					IF (x_ball="0001") THEN
+						matrix1<="1010101110010100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1001") THEN
+						matrix2<="1010101110010100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st50;	
+				
+			WHEN st50=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0110") THEN
+					IF (x_ball="0010") THEN
+						matrix1<="1001101110010100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1010") THEN
+						matrix2<="1001101110010100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st51;	
+				
+			WHEN st51=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0110") THEN
+					IF (x_ball="0011") THEN
+						matrix1<="1000101111010100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1011") THEN
+						matrix2<="1000101111010100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st52;	
+				
+			WHEN st52=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0110") THEN
+					IF (x_ball="0100") THEN
+						matrix1<="1000111110010100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1100") THEN
+						matrix2<="1000111110010100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st53;	
+				
+			WHEN st53=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0110") THEN
+					IF (x_ball="0101") THEN
+						matrix1<="1000101110110100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1101") THEN
+						matrix2<="1000101110110100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st54;	
+				
+			WHEN st54=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0110") THEN
+					IF (x_ball="0110") THEN
+						matrix1<="1000101110010110";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1110") THEN
+						matrix2<="1000101110010110";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st55;	
+				
+			WHEN st55=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0110") THEN
+					IF (x_ball="0111") THEN
+						matrix1<="1000101110010101";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1111") THEN
+						matrix2<="1000101110010101";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			IF ( rack2y2="0110" OR rack2y3="0110")THEN
+					matrix2<="1000101110010101";
+				ELSE
+					matrix2<="1100101110010100";
+			END IF;
+			nx_state <= st56;	
+				
+			WHEN st56=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0111") THEN
+					IF (x_ball="0000") THEN
+						matrix1<="1100001110011100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1000") THEN
+						matrix2<="1100001110011100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			IF (rack1y3="0111")THEN
+					matrix1<="1100001110011100";
+				ELSE
+					matrix1<="1100101110010100";
+			END IF;
+			nx_state <= st57;	
+				
+			WHEN st57=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0111") THEN
+					IF (x_ball="0001") THEN
+						matrix1<="1110001110010100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1001") THEN
+						matrix2<="1110001110010100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st58;	
+				
+			WHEN st58=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0111") THEN
+					IF (x_ball="0010") THEN
+						matrix1<="1101001110010100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1010") THEN
+						matrix2<="1101001110010100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st59;	
+				
+			WHEN st59=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0111") THEN
+					IF (x_ball="0011") THEN
+						matrix1<="1100001111010100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1011") THEN
+						matrix2<="1100001111010100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st60;	
+				
+			WHEN st60=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0111") THEN
+					IF (x_ball="0100") THEN
+						matrix1<="1100011110010100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1100") THEN
+						matrix2<="1100011110010100";
+					ELSE
+					matrix2<="1100101110010100";	
+				END IF;
+			END IF;
+			nx_state <= st61;	
+				
+			WHEN st61=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0111") THEN
+					IF (x_ball="0101") THEN
+						matrix1<="1100001110110100";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1101") THEN
+						matrix2<="1100001110110100";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st62;	
+				
+			WHEN st62=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0111") THEN
+					IF (x_ball="0110") THEN
+						matrix1<="1100001110010110";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1110") THEN
+						matrix2<="1100001110010110";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			nx_state <= st63;	
+				
+			WHEN st63=>
+			matrix1<="1100101110010100";
+			matrix2<="1100101110010100";
+				IF (y_ball="0111") THEN
+					IF (x_ball="0111") THEN
+						matrix1<="1100001110010101";
+					ELSE
+						matrix1<="1100101110010100";
+					END IF;
+					IF (x_ball="1111") THEN
+						matrix2<="1100001110010101";
+					ELSE
+						matrix2<="1100101110010100";
+				END IF;
+			END IF;
+			IF ( rack2y3="0111") THEN
+					matrix2<="1100001110010101";
+				ELSE
+					matrix2<="1100101110010100";
+			END IF;
+			nx_state <= st0;	
+		END CASE;
+	END PROCESS led;
+END ARCHITECTURE controller;	
+----------------------------------------------------------------------------------
+LIBRARY IEEE;
+USE ieee.std_logic_1164.all;
+USE ieee.numeric_std.all;
+------------------------------------------------------------------
+ENTITY racket IS
+    PORT(   clk                 :  IN     STD_LOGIC;
+				goal					  :  IN     STD_LOGIC;
+            rst                 :  IN     STD_LOGIC;
+            rl_i	              :  IN     STD_LOGIC_VECTOR (1 DOWNTO 0);
+            y1						  :  OUT    STD_LOGIC_VECTOR (3 DOWNTO 0);
+				y2						  :  OUT    STD_LOGIC_VECTOR (3 DOWNTO 0);
+            y3						  :  OUT    STD_LOGIC_VECTOR (3 DOWNTO 0));
+END ENTITY;

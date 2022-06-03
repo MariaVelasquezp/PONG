@@ -1,0 +1,130 @@
+LIBRARY IEEE;
+USE ieee.std_logic_1164.all;
+USE ieee.numeric_std.all;
+------------------------------------------------------------------
+ENTITY racket IS
+    PORT(   clk                 :  IN     STD_LOGIC;
+				goal					  :  IN     STD_LOGIC;
+            rst                 :  IN     STD_LOGIC;
+            rl_i	              :  IN     STD_LOGIC_VECTOR (1 DOWNTO 0);
+            y1						  :  OUT    STD_LOGIC_VECTOR (3 DOWNTO 0);
+				y2						  :  OUT    STD_LOGIC_VECTOR (3 DOWNTO 0);
+            y3						  :  OUT    STD_LOGIC_VECTOR (3 DOWNTO 0));
+END ENTITY;
+----------------------------------------------------------------
+ARCHITECTURE fsm OF racket IS
+    TYPE state IS (first234, second345, third456, fourth567, fifth012, sixth123);
+    SIGNAL pr_state, nx_state: state;
+	 SIGNAL y1_s, y2_s, y3_s: STD_LOGIC_VECTOR(3 DOWNTO 0);
+	 SIGNAL rl: STD_LOGIC_VECTOR(1 DOWNTO 0);
+	 
+ 
+BEGIN
+	 y1 <= y1_s;
+	 y2 <= y2_s;
+	 y3 <= y3_s;
+
+    sequential: PROCESS (rst, clk)
+    BEGIN
+        IF (rst='1') THEN
+            pr_state <= first234;
+        ELSIF (rising_edge(clk)) THEN
+            pr_state <= nx_state;
+        END IF;
+    END PROCESS sequential;
+    
+    combinational: PROCESS (rl, pr_state, nx_state, y1_s, y2_s, y3_s, goal)
+    BEGIN
+        CASE pr_state IS
+            WHEN first234 =>
+                y1_s  <= "0010";
+					 y2_s  <= "0011";
+					 y3_s  <= "0100";
+                IF (rl = "10")THEN
+                    nx_state <= second345;
+                ELSIF (rl = "01") THEN 
+                    nx_state <= sixth123;
+					 ELSIF (goal='1') THEN
+						  nx_state <= first234;
+                ELSE
+                    nx_state <= first234;
+                END IF;
+    -------------------------------------
+            WHEN second345 =>
+                y1_s  <= "0011";
+					 y2_s  <= "0100";
+					 y3_s  <= "0101";
+                IF (rl = "10")THEN
+                    nx_state <= third456;
+                ELSIF (rl = "01") THEN 
+                    nx_state <= first234;
+					 ELSIF (goal='1') THEN
+						  nx_state <= first234;
+                ELSE
+                    nx_state <= second345;
+                END IF;
+    -------------------------------------
+            WHEN third456 =>
+                y1_s  <= "0100";
+					 y2_s  <= "0101";
+					 y3_s  <= "0110";
+                IF (rl = "10")THEN
+                    nx_state <= fourth567;
+                ELSIF (rl = "01") THEN 
+                    nx_state <= second345;
+					 ELSIF (goal='1') THEN
+						  nx_state <= first234;						  
+                ELSE
+                    nx_state <= third456;
+                END IF;
+    -------------------------------------
+            WHEN fourth567 =>
+                y1_s  <= "0101";
+					 y2_s  <= "0110";
+					 y3_s  <= "0111";
+                IF (rl = "01")THEN
+                    nx_state <= third456;
+					 ELSIF (goal='1') THEN
+						  nx_state <= first234;
+                ELSE
+                    nx_state <= fourth567;
+                END IF;
+    -------------------------------------
+            WHEN fifth012 =>
+                y1_s  <= "0000";
+					 y2_s  <= "0001";
+					 y3_s  <= "0010";
+                IF (rl = "10")THEN
+                    nx_state <= sixth123;
+					 ELSIF (goal='1') THEN
+						  nx_state <= first234;
+                ELSE
+                    nx_state <= fifth012;
+                END IF;
+    -------------------------------------
+            WHEN sixth123 =>
+                y1_s  <= "0001";
+					 y2_s  <= "0010";
+					 y3_s  <= "0011";
+                IF (rl = "10")THEN
+                    nx_state <= first234;
+                ELSIF (rl = "01") THEN 
+                    nx_state <= fifth012;
+					 ELSIF (goal='1') THEN
+						  nx_state <= first234;
+                ELSE
+                    nx_state <= sixth123;
+                END IF;
+            END CASE;
+        END PROCESS combinational;
+		  
+	L_SIGNAL: ENTITY work.edge_detect_inter
+		PORT MAP(	clk	=> clk,
+						d		=> rl_i(0),
+						edge  =>	rl(0));
+	R_SIGNAL: ENTITY work.edge_detect_inter
+		PORT MAP(	clk	=> clk,
+						d		=> rl_i(1),
+						edge  =>	rl(1));
+	
+END ARCHITECTURE fsm;

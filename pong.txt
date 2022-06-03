@@ -1,0 +1,164 @@
+--GROUP 2
+--PONG
+LIBRARY IEEE;
+USE ieee.std_logic_1164.all;
+------------------------------------------------------
+ENTITY pong IS
+	GENERIC( N_base :	INTEGER := 16);
+	PORT(		clk 				: 		IN 		STD_LOGIC;
+				rst 				: 		IN 		STD_LOGIC;
+				ena				: 		IN 		STD_LOGIC;
+				rl_J1				:		IN			STD_LOGIC_VECTOR(1 DOWNTO 0);
+				rl_J2				:		IN			STD_LOGIC_VECTOR(1 DOWNTO 0);				
+				up_1				:		OUT		STD_LOGIC;
+				up_2				:		OUT		STD_LOGIC;
+				d_1				:		OUT		STD_LOGIC;
+				d_2				:		OUT		STD_LOGIC;
+				matrix1			:		OUT		STD_LOGIC_VECTOR(15 DOWNTO 0);
+				matrix2			:		OUT		STD_LOGIC_VECTOR(15 DOWNTO 0);
+				ss_pJ1			:		OUT		STD_LOGIC_VECTOR(6 DOWNTO 0);
+				ss_pJ2			:		OUT		STD_LOGIC_VECTOR(6 DOWNTO 0));						
+END ENTITY pong;
+-------------------------------------------------------
+ARCHITECTURE rtl	OF pong IS
+SIGNAL y1_J1, y2_J1, y3_J1, y1_J2, y2_J2, y3_J2, sc_J1, sc_J2, x_ball_s, y_ball_s : STD_LOGIC_VECTOR(3 DOWNTO 0);
+SIGNAL yey_s, end_goal_s,end_win1_s, start_win1_s,end_win2_s, start_win2_s: 	STD_LOGIC;
+SIGNAL matrix1_game, matrix1_goal, matrix2_game, matrix2_goal,matrix1_pong,matrix2_pong,matrix1_jug1,matrix2_jug1,matrix1_jug2,matrix2_jug2	: 	STD_LOGIC_VECTOR(15 DOWNTO 0);
+								
+		
+BEGIN
+
+				up_1 <= 	'1' WHEN rl_J1 = "01" ELSE
+							'0';
+				up_2 <= 	'1' WHEN rl_J1 = "10" ELSE
+							'0';
+				d_1 <= 	'1' WHEN rl_J2 = "01" ELSE
+							'0';
+				d_2 <= 	'1' WHEN rl_J2 = "10" ELSE
+							'0';
+			
+			   RACKET_J1: ENTITY work.racket_n
+			   PORT MAP(	clk 	=> clk,
+							goal 	=> yey_s,
+							rst 	=> rst,
+							ena   => ena,
+							rl 	=> rl_J1,
+							y1 	=> y1_J1,
+							y2 	=> y2_J1,
+							y3 	=> y3_J1	);
+							
+			   RACKET_J2: ENTITY work.racket_n
+			   PORT MAP(	clk 	=> clk,
+							goal 	=> yey_s,
+							rst 	=> rst,
+							ena   => ena,
+							rl 	=> rl_J2,
+							y1 	=> y1_J2,
+							y2 	=> y2_J2,
+							y3 	=> y3_J2);
+
+			   BALLY: ENTITY work.ball
+				PORT MAP(    clk          => clk,
+								  rst          => rst,
+								  ena          => ena,
+								  end_goal     => end_goal_s,
+								  py1_raq1     => y1_J1,
+								  py2_raq1     => y2_J1,
+								  py3_raq1     => y3_J1,
+								  py1_raq2     => y1_J2,
+								  py2_raq2     => y2_J2,
+								  py3_raq2     => y3_J2,
+								  points_J1    => sc_J1,
+								  points_J2    => sc_J2,
+								  px_ball      => x_ball_s,
+								  py_ball      => y_ball_s,
+								  yey          => yey_s);
+					  
+			
+				SS_scJ1: ENTITY work.bin_to_sseg
+				PORT MAP(  	bin		=> sc_J1,
+								sseg		=>	ss_pJ1);
+								
+				SS_scJ2: ENTITY work.bin_to_sseg
+				PORT MAP(  	bin		=> sc_J2,
+								sseg		=>	ss_pJ2);
+								
+				game_matr: ENTITY work.led_matrix
+				PORT MAP(	clk 			=> clk,
+								rst 			=> rst,
+								x_ball		=> x_ball_s, 
+								y_ball		=> y_ball_s,	
+								rack1y1		=> y1_J1,	
+								rack1y2		=> y2_J1,	
+								rack1y3		=> y3_J1,
+								rack2y1		=> y1_J2,	
+								rack2y2		=> y2_J2,	
+								rack2y3		=> y3_J2,
+								matrix1		=> matrix1_game,
+								matrix2		=> matrix2_game);
+
+				goal_matr: ENTITY work.goal
+					PORT MAP(	clk 			=> clk,
+									rst 			=> rst,
+									matrix1		=> matrix1_goal,
+									matrix2		=> matrix2_goal);
+					
+				timer_goal: ENTITY work.univ_bin_counter
+					  PORT MAP( clk            => clk,
+									rst            => rst,
+									syn_clr        => '0',
+									ena        		=> yey_s,
+									max_count  		=> "1000111100001101000110000000",
+									up             => '1',
+									max_tick    	=> end_goal_s,
+									counter        => OPEN);
+				timer_winner1: ENTITY work.univ_bin_counter
+					  PORT MAP( clk            => clk,
+									rst            => rst,
+									syn_clr        => '0',
+									ena        		=> start_win1_s,
+									max_count  		=> "1000111100001101000110000000",
+									up             => '1',
+									max_tick    	=> end_win1_s,
+									counter        => OPEN);
+				timer_winner2: ENTITY work.univ_bin_counter
+					  PORT MAP( clk            => clk,
+									rst            => rst,
+									syn_clr        => '0',
+									ena        		=> start_win2_s,
+									max_count  		=> "1000111100001101000110000000",
+									up             => '1',
+									max_tick    	=> end_win2_s,
+									counter        => OPEN);
+				pong_matrix: ENTITY work.title
+					PORT MAP(	clk            => clk,
+									rst            => rst,
+									matrix1		=> matrix1_pong,
+									matrix2		=> matrix2_pong);
+				winner1: ENTITY work.winner_1
+					PORT MAP(	clk            => clk,
+									rst            => rst,
+									matrix1		=> matrix1_jug1,
+									matrix2		=> matrix2_jug1);
+				winner2: ENTITY work.j2winner
+					PORT MAP(	clk            => clk,
+									rst            => rst,
+									matrix1		=> matrix1_jug2,
+									matrix2		=> matrix2_jug2);
+
+				matrix1	<= matrix1_goal	WHEN (yey_s = '1')	ELSE
+								matrix1_pong	WHEN (ena = '0')	ELSE
+								matrix1_jug1   WHEN (start_win1_s='1')ELSE
+								matrix1_jug2   WHEN (start_win2_s='1')ELSE
+								matrix1_game;
+				matrix2	<= matrix2_goal	WHEN (yey_s = '1')	ELSE
+								matrix2_pong	WHEN (ena = '0')	ELSE
+								matrix2_jug1   WHEN (start_win1_s='1')ELSE
+								matrix2_jug2   WHEN (start_win2_s='1')ELSE
+								matrix2_game;
+				start_win1_s<='1' WHEN (sc_J1="1111") ELSE
+								  '0';
+				start_win2_s<='1' WHEN (sc_J2="1111") ELSE
+								  '0';
+			
+END ARCHITECTURE rtl;	
