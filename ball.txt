@@ -1,0 +1,342 @@
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+USE IEEE.numeric_std.ALL;
+USE IEEE.STD_LOGIC_UNSIGNED.ALL;
+----------------------------------------------------------------
+ENTITY ball IS
+GENERIC ( N : INTEGER := 4);
+PORT ( 	clk 			: IN 	STD_LOGIC;
+			rst 			: IN 	STD_LOGIC;
+			ena 			: IN 	STD_LOGIC;
+			end_goal 	: IN	STD_LOGIC;
+			py1_raq1 	: IN 	STD_LOGIC_VECTOR(3 DOWNTO 0); -- izq
+			py2_raq1 	: IN 	STD_LOGIC_VECTOR(3 DOWNTO 0); -- izq
+			py3_raq1 	: IN 	STD_LOGIC_VECTOR(3 DOWNTO 0); -- izq
+			py1_raq2 	: IN 	STD_LOGIC_VECTOR(3 DOWNTO 0); -- der
+			py2_raq2 	: IN 	STD_LOGIC_VECTOR(3 DOWNTO 0); -- der
+			py3_raq2 	: IN 	STD_LOGIC_VECTOR(3 DOWNTO 0); -- der
+			points_J1 	: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+			points_J2 	: OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+			px_ball 		: OUT STD_LOGIC_VECTOR(N-1 DOWNTO 0);
+			py_ball 		: OUT STD_LOGIC_VECTOR(N-1 DOWNTO 0);
+			yey			: OUT STD_LOGIC);
+END ball;
+----------------------------------------------------------------
+ARCHITECTURE idk OF ball IS
+TYPE state IS (init, toleft, toright, up_left, down_left, up_right, down_right, goal);
+SIGNAL pr_state, nx_state: state;
+SIGNAL refresh_time: STD_LOGIC_VECTOR (26 DOWNTO 0);
+SIGNAL px_ball_s, py_ball_s: STD_LOGIC_VECTOR (3 DOWNTO 0);
+SIGNAL points_J1_signal, points_J2_signal : STD_LOGIC_VECTOR (3 DOWNTO 0);
+SIGNAL bothpoints : STD_LOGIC_VECTOR (4 DOWNTO 0);
+SIGNAL  pos_y, pos_x, pos_y_next, pos_x_next : UNSIGNED(N-1 DOWNTO 0);
+SIGNAL score_J1J2, afterraq1, afterraq2, borde : STD_LOGIC_VECTOR (1 DOWNTO 0) := "00";
+SIGNAL ena_x, ena_y, sel_x, sel_y, ena_J1, ena_J2, ini_p, ena_speed	: STD_LOGIC;
+SIGNAL ZO : UNSIGNED(3 DOWNTO 0) := "0001";
+SIGNAL OZ : UNSIGNED(3 DOWNTO 0) := "1110";
+SIGNAL u_py1_raq1, u_py2_raq1, u_py3_raq1, u_py1_raq2, u_py2_raq2, u_py3_raq2 : UNSIGNED(3 DOWNTO 0);
+
+
+BEGIN
+pos_y_next <= --(OTHERS => '0') WHEN syn_clr='1' ELSE
+					"0011" 		WHEN ( ini_p = '1' AND (ena_y ='0' AND sel_y='0')) ELSE
+					pos_y + 1 	WHEN ( ini_p = '0' AND (ena_y ='1' AND sel_y='1')) ELSE
+					pos_y - 1 	WHEN ( ini_p = '0' AND (ena_y ='1' AND sel_y='0')) ELSE
+					pos_y;
+
+pos_x_next <= --(OTHERS => '0') WHEN syn_clr='1' ELSE
+					"0111" 		WHEN ( ini_p = '1' AND (ena_x ='0' AND sel_x='0')) ELSE
+					pos_x + 1 	WHEN ( ini_p = '0' AND (ena_x ='1' AND sel_x='0')) ELSE
+					pos_x - 1 	WHEN ( ini_p = '0' AND (ena_x ='1' AND sel_x='1')) ELSE
+					pos_x;
+
+
+posi_y: PROCESS(clk, rst, ena_y, ini_p, ena_speed)
+VARIABLE temp_y : UNSIGNED(N-1 DOWNTO 0);
+BEGIN
+	IF((rst='1') OR (ini_p = '1')) THEN
+		temp_y:= "0011"; --(OTHERS => '0');
+	ELSIF (rising_edge(clk)) THEN  
+		IF ((ena_y='1') AND (ena_speed = '1')) THEN
+			temp_y := pos_y_next;
+		END IF;
+	END IF;
+	py_ball_s <= STD_LOGIC_VECTOR(temp_y);
+	pos_y <= temp_y;
+END PROCESS;
+
+posi_x: PROCESS(clk, rst, ena_x, ini_p, ena_speed)
+VARIABLE temp_x : UNSIGNED(N-1 DOWNTO 0);
+BEGIN
+	IF((rst='1') OR (ini_p = '1')) THEN
+		temp_x:= "0111";	--(OTHERS => '0');
+	ELSIF (rising_edge(clk)) THEN
+		IF ((ena_x='1') AND (ena_speed = '1')) THEN
+			temp_x := pos_x_next;
+		END IF;
+	END IF;
+	px_ball_s <= STD_LOGIC_VECTOR(temp_x);
+	pos_x <= temp_x;
+END PROCESS;
+
+px_ball	<=	px_ball_s;
+py_ball	<=	py_ball_s;
+
+score_J1J2 <= 	"01" WHEN ("0000"= pos_x_next) ELSE
+					"10" WHEN ("1111"= pos_x_next) ELSE
+					"00";
+
+ena_J1	<= '1' WHEN ((score_J1J2 = "10") AND (end_goal = '1')) ELSE
+				'0';
+ena_J2	<= '1' WHEN ((score_J1J2 = "01") AND (end_goal = '1')) ELSE
+				'0';
+				
+	u_py1_raq1	<= UNSIGNED(py1_raq1);
+	u_py2_raq1	<= UNSIGNED(py2_raq1);
+	u_py3_raq1	<=	UNSIGNED(py3_raq1);
+	u_py1_raq2	<=	UNSIGNED(py1_raq2);
+	u_py2_raq2	<=	UNSIGNED(py2_raq2);
+	u_py3_raq2	<= UNSIGNED(py3_raq2);
+				
+afterraq1 <= 	"10" WHEN ((u_py1_raq1 = pos_y_next) AND (pos_x_next = "0001")) ELSE
+					"11" WHEN ((u_py2_raq1 = pos_y_next) AND (pos_x_next = "0001")) ELSE
+					"01" WHEN ((u_py3_raq1 = pos_y_next) AND (pos_x_next = "0001")) ELSE
+					"00";
+
+afterraq2 <= 	"10" WHEN ((u_py1_raq2 = pos_y_next) AND (pos_x_next = "1110")) ELSE
+					"11" WHEN ((u_py2_raq2 = pos_y_next) AND (pos_x_next = "1110")) ELSE
+					"01" WHEN ((u_py3_raq2 = pos_y_next) AND (pos_x_next = "1110")) ELSE
+					"00";
+borde <= "10" WHEN ("0000" = pos_y_next)ELSE -- BORDE SUPERIOR 
+			"01" WHEN ("0111" = pos_y_next)ELSE -- BORDE INFERIOR
+			"00";
+
+
+			
+sequential: PROCESS (rst, clk)
+BEGIN
+	IF (rst='1') THEN
+		pr_state <= init;
+	ELSIF (rising_edge(clk)) THEN
+		pr_state <= nx_state;
+	END IF;
+END PROCESS sequential;
+
+combinational: PROCESS (pr_state, score_J1J2, py1_raq1, py2_raq1, py3_raq1, py1_raq2, py2_raq2, py3_raq2, afterraq1, afterraq2, borde, end_goal, px_ball_s, py_ball_s)
+BEGIN
+	CASE pr_state IS
+		WHEN init =>
+			ena_x <= '0'; 
+			ena_y <= '0';
+			sel_x <= '0';
+			sel_y <= '0';
+			yey	<= '0';
+			ini_p	<= '1';
+			
+			IF ((px_ball_s	= "0111") AND (py_ball_s = "0011")) THEN
+				IF (score_J1J2 = "01") THEN -- cuando el J2 meta gol el empieza
+					nx_state <= toright;
+				ELSE
+					nx_state <= toleft; -- siempre empieza el J1
+				END IF;
+			ELSE
+				nx_state	<= init;
+			END IF;
+		-------------------------------------
+		WHEN toleft =>
+			ena_x <= '1';
+			ena_y <= '0';
+			sel_x <= '1';
+			sel_y <= '0';
+			yey	<= '0';
+			ini_p	<= '0';
+
+			IF (afterraq1 = "10") THEN
+				nx_state <= up_right;
+			ELSIF (afterraq1 = "11") THEN
+				nx_state <= toright;
+			ELSIF (afterraq1 = "01") THEN
+				nx_state <= down_right;
+			ELSIF (score_J1J2 = "01") THEN
+				nx_state <= goal;---------------
+			ELSE
+			 nx_state <= toleft;
+			END IF;
+		-------------------------------------
+		WHEN toright =>
+			ena_x <= '1';
+			ena_y <= '0';
+			sel_x <= '0';
+			sel_y <= '0';
+			yey	<= '0';
+			ini_p	<= '0';
+
+			IF (afterraq2 = "10") THEN
+				nx_state <= up_left;
+			ELSIF (afterraq2 = "11") THEN
+				nx_state <= toleft;
+			ELSIF (afterraq2 = "01") THEN
+				nx_state <= down_left;
+			ELSIF (score_J1J2 = "10") THEN
+				nx_state <= goal;---------------
+			ELSE
+				nx_state <= toright;
+			END IF;
+		-------------------------------------
+		WHEN up_left =>
+			ena_x <= '1';
+			ena_y <= '1';
+			sel_x <= '1';
+			sel_y <= '0';
+			yey	<= '0';
+			ini_p	<= '0';
+
+			IF (afterraq1 = "10") THEN
+				nx_state <= up_right;
+			ELSIF (afterraq1 = "11") THEN
+				nx_state <= toright;
+			ELSIF (afterraq1 = "01") THEN
+				nx_state <= down_right;
+			ELSIF (borde = "10") THEN
+				nx_state <= down_left;
+			ELSIF (score_J1J2 = "01") THEN
+				nx_state <= goal;---------------
+			ELSE
+			 nx_state <= up_left;
+			END IF;
+		-------------------------------------
+		WHEN up_right =>
+			ena_x <= '1';
+			ena_y <= '1';
+			sel_x <= '0';
+			sel_y <= '0';
+			yey	<= '0';
+			ini_p	<= '0';
+
+			IF (afterraq2 = "10") THEN
+				nx_state <= up_left;
+			ELSIF (afterraq2 = "11") THEN
+				nx_state <= toleft;
+			ELSIF (afterraq2 = "01") THEN
+				nx_state <= down_left;
+			ELSIF (borde = "10") THEN
+				nx_state <= down_right;
+			ELSIF (score_J1J2 = "10") THEN
+				nx_state <= goal;---------------
+			ELSE
+				nx_state <= up_right;
+			END IF;
+		-------------------------------------
+		WHEN down_left =>
+			ena_x <= '1';
+			ena_y <= '1';
+			sel_x <= '1';
+			sel_y <= '1';
+			yey	<= '0';
+			ini_p	<= '0';
+
+			IF (afterraq1 = "10") THEN
+				nx_state <= up_right;
+			ELSIF (afterraq1 = "11") THEN
+				nx_state <= toright;
+			ELSIF (afterraq1 = "01") THEN
+				nx_state <= down_right;
+			ELSIF (borde = "01") THEN
+				nx_state <= up_left;
+			ELSIF (score_J1J2 = "01") THEN
+				nx_state <= goal;---------------
+			ELSE
+			 nx_state <= down_left;
+			END IF;
+		-------------------------------------
+		WHEN down_right =>
+			ena_x <= '1';
+			ena_y <= '1';
+			sel_x <= '0';
+			sel_y <= '1';
+			yey	<= '0';
+			ini_p	<= '0';
+
+			IF (afterraq2 = "10") THEN
+				nx_state <= up_left;
+			ELSIF (afterraq2 = "11") THEN
+				nx_state <= toleft;
+			ELSIF (afterraq2 = "01") THEN
+				nx_state <= down_left;
+			ELSIF (borde = "01") THEN
+				nx_state <= up_right;
+			ELSIF (score_J1J2 = "10") THEN
+				nx_state <= goal;---------------
+			ELSE
+				nx_state <= down_right;
+			END IF;
+		-------------------------------------
+		WHEN goal =>
+			ena_x <= '0';
+			ena_y <= '0';
+			sel_x <= '0';
+			sel_y <= '0';
+			yey	<= '1';
+			ini_p	<= '0';
+
+			IF (end_goal = '1') THEN
+				nx_state <= init;
+			ELSE
+				nx_state <= goal;
+			END IF;
+		-------------------------------------
+	END CASE;
+
+END PROCESS combinational;
+
+
+refresh_time <= 	"0000010011000100101101000000"	WHEN (bothpoints	> "00101") ELSE -- 0.2s
+						"0000100110001001011010000000"	WHEN (bothpoints	> "01010") ELSE -- 0.2s
+						"0001001100010010110100000000"; -- 0.4 S
+
+bothpoints	<= points_J1_signal + points_J2_signal;
+-- ELSE--"1000111100001101000110000000",
+						
+
+speed_c: ENTITY work.univ_bin_counter
+	  PORT MAP( clk            => clk,
+					rst            => rst,
+					syn_clr        => '0',
+					ena        		=> ena,
+					max_count  		=> refresh_time,
+					up             => '1',
+					max_tick    	=> ena_speed,
+					counter        => OPEN);
+
+score_J1: ENTITY work.univ_bin_counter_cont
+		GENERIC MAP ( N => N)
+		PORT MAP( clk 	=> clk,
+			rst 			=> rst,
+			ena        	=> ena_J1,
+			syn_clr 		=> '0',
+			load 			=> '0',
+			up 			=> '1',
+			d 				=> points_J1_signal,
+			max_tick 	=> OPEN,--max_tick, --- BANDERA TOPE
+			min_tick 	=> OPEN,
+			counter 		=> points_J1_signal,
+			MaxC   		=> "1010");
+
+score_J2: ENTITY work.univ_bin_counter_cont
+		GENERIC MAP ( N => N)
+		PORT MAP( clk 	=> clk,
+			rst 			=> rst,
+			ena        	=> ena_J2,
+			syn_clr 		=> '0',
+			load 			=> '0',
+			up 			=> '1',
+			d 				=> points_J2_signal,
+			max_tick 	=> OPEN,--max_tick, --- BANDERA TOPE
+			min_tick 	=> OPEN,
+			counter 		=> points_J2_signal,
+			MaxC   		=> "1010");
+
+points_J1 <= points_J1_signal;
+points_J2 <= points_J2_signal;
+		
+END ARCHITECTURE idk;
